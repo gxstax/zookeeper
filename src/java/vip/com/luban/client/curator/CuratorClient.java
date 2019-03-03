@@ -9,13 +9,12 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 /**
- * *************书山有路勤为径***************
- * 鲁班学院
- * 往期资料加木兰老师  QQ: 2746251334
- * VIP课程加安其拉老师 QQ: 3164703201
- * 讲师：周瑜老师
- * *************学海无涯苦作舟***************
- */
+ * @ClassName CuratorClient
+ * @Description CuratorClient
+ * @Author Ant
+ * @Date 2019-03-03 22:41
+ * @Version 1.0
+ **/
 public class CuratorClient {
     public static void main(String[] args) throws Exception {
 

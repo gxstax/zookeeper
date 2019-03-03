@@ -3,13 +3,12 @@ package com.luban.distributed_config;
 import java.io.*;
 
 /**
- * *************书山有路勤为径***************
- * 鲁班学院
- * 往期资料加木兰老师  QQ: 2746251334
- * VIP课程加安其拉老师 QQ: 3164703201
- * 讲师：周瑜老师
- * *************学海无涯苦作舟***************
- */
+ * @ClassName SerializableUtils
+ * @Description SerializableUtils
+ * @Author Ant
+ * @Date 2019-03-03 22:41
+ * @Version 1.0
+ **/
 public class SerializableUtils {
     public static byte[] encode(Object object) {
         try {
