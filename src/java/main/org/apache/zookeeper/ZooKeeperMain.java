@@ -229,6 +229,7 @@ public class ZooKeeperMain {
          * @return true if parsing succeeded.
          */
         public boolean parseCommand( String cmdstring ) {
+            // 解析输入的命令行字符串
             Matcher matcher = ARGS_PATTERN.matcher(cmdstring);
 
             List<String> args = new LinkedList<String>();
@@ -257,6 +258,7 @@ public class ZooKeeperMain {
      */
 
 
+    // 一个记录历史命令的hashMap
     protected void addToHistory(int i,String cmd) {
         history.put(i, cmd);
     }
@@ -312,6 +314,7 @@ public class ZooKeeperMain {
             boolean jlinemissing = false;
             // only use jline if it's in the classpath
             try {
+                // java命令行的实现类
                 Class<?> consoleC = Class.forName("jline.ConsoleReader");
                 Class<?> completorC =
                     Class.forName("org.apache.zookeeper.JLineZNodeCompletor");
@@ -330,6 +333,7 @@ public class ZooKeeperMain {
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
+                    // 执行命令行逻辑
                     executeLine(line);
                 }
             } catch (ClassNotFoundException e) {
@@ -369,6 +373,7 @@ public class ZooKeeperMain {
     throws InterruptedException, IOException, KeeperException {
       if (!line.equals("")) {
         cl.parseCommand(line);
+        // 添加到历史命令集合中
         addToHistory(commandCount,line);
         processCmd(cl);
         commandCount++;
@@ -627,6 +632,9 @@ public class ZooKeeperMain {
     protected boolean processZKCmd(MyCommandOptions co)
         throws KeeperException, IOException, InterruptedException
     {
+        /*
+         * 解析各种命令行信息
+         */
         Stat stat = new Stat();
         String[] args = co.getArgArray();
         String cmd = co.getCommand();

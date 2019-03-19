@@ -713,6 +713,7 @@ public class ZooKeeper {
     }
 
     /**
+     * 创建一个节点
      * Create a node with the given path. The node data will be the given data,
      * and node acl will be the given acl.
      * <p>
@@ -772,14 +773,18 @@ public class ZooKeeper {
         throws KeeperException, InterruptedException
     {
         final String clientPath = path;
+        // 校验路径信息是否正确
         PathUtils.validatePath(clientPath, createMode.isSequential());
 
         final String serverPath = prependChroot(clientPath);
 
+        // 构建一个请求头，用于向服务器发送请求信息
         RequestHeader h = new RequestHeader();
         h.setType(ZooDefs.OpCode.create);
+        // 构建请求request
         CreateRequest request = new CreateRequest();
         CreateResponse response = new CreateResponse();
+        // 设定request请求值
         request.setData(data);
         request.setFlags(createMode.toFlag());
         request.setPath(serverPath);
@@ -787,6 +792,7 @@ public class ZooKeeper {
             throw new KeeperException.InvalidACLException();
         }
         request.setAcl(acl);
+        // 提交请求信息
         ReplyHeader r = cnxn.submitRequest(h, request, response, null);
         if (r.getErr() != 0) {
             throw KeeperException.create(KeeperException.Code.get(r.getErr()),

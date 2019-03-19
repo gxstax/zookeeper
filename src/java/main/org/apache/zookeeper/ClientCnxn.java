@@ -141,6 +141,7 @@ public class ClientCnxn {
     private final LinkedList<Packet> pendingQueue = new LinkedList<Packet>();
 
     /**
+     * 需要发送的包队列
      * These are the packets that need to be sent.
      */
     private final LinkedList<Packet> outgoingQueue = new LinkedList<Packet>();
@@ -365,6 +366,7 @@ public class ClientCnxn {
     }
 
     /**
+     * 创建一个连接对象，
      * Creates a connection object. The actual network connect doesn't get
      * established until needed. The start() instance method must be called
      * subsequent to construction.
@@ -397,10 +399,13 @@ public class ClientCnxn {
         this.hostProvider = hostProvider;
         this.chrootPath = chrootPath;
 
+        // 设置连接超时时间
         connectTimeout = sessionTimeout / hostProvider.size();
+        // 设置读超时时间
         readTimeout = sessionTimeout * 2 / 3;
         readOnly = canBeReadOnly;
 
+        // 这里是初始化了两个线程，一个是发送的线程，一个是事件线程
         sendThread = new SendThread(clientCnxnSocket);
         eventThread = new EventThread();
 
@@ -1064,6 +1069,7 @@ public class ClientCnxn {
                         // 不是第一次连接，就随机等待...，重试，随机出时间进行重试
                         if(!isFirstConnect){
                             try {
+                                // 这里线程睡眠一个随机数时间，是为了保证客户端不一直无限重试
                                 Thread.sleep(r.nextInt(1000));
                             } catch (InterruptedException e) {
                                 LOG.warn("Unexpected exception", e);
@@ -1438,9 +1444,11 @@ public class ClientCnxn {
             Record response, WatchRegistration watchRegistration)
             throws InterruptedException {
         ReplyHeader r = new ReplyHeader();
+        // 发送请求给客户端，客户端会构造一个response返回
         Packet packet = queuePacket(h, r, request, response, null, null, null,
                     null, watchRegistration);
         synchronized (packet) {
+            // 这一会一直等待服务端返回，如果没有返回，线程就一直在这里阻塞
             while (!packet.finished) {
                 packet.wait();
             }
