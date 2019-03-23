@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import org.apache.zookeeper.common.PathUtils;
 
 /**
+ * zookeep客户端连接字符串解析器
  * A parser for ZooKeeper Client connect strings.
  * 
  * This class is not meant to be seen or used outside of ZooKeeper itself.

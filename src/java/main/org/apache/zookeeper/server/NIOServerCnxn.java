@@ -243,6 +243,7 @@ public class NIOServerCnxn extends ServerCnxn {
 
                 return;
             }
+            // 判断读就绪
             if (k.isReadable()) {
                 int rc = sock.read(incomingBuffer);
                 if (rc < 0) {
@@ -272,6 +273,7 @@ public class NIOServerCnxn extends ServerCnxn {
                     }
                 }
             }
+            // 判断写就绪
             if (k.isWritable()) {
                 // ZooLog.logTraceMessage(LOG,
                 // ZooLog.CLIENT_DATA_PACKET_TRACE_MASK

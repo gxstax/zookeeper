@@ -332,6 +332,7 @@ public class ZooKeeperMain {
 
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
+                // 这里的while就是一直解析并执行我们命令行输入的命令
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
                     // 执行命令行逻辑
                     executeLine(line);
@@ -371,6 +372,7 @@ public class ZooKeeperMain {
 
     public void executeLine(String line)
     throws InterruptedException, IOException, KeeperException {
+
       if (!line.equals("")) {
         cl.parseCommand(line);
         // 添加到历史命令集合中
@@ -694,26 +696,31 @@ public class ZooKeeperMain {
             System.out.println("Not connected");
             return false;
         }
-        
+        // 创建节点命令
         if (cmd.equals("create") && args.length >= 3) {
             int first = 0;
             // 构造CreateMode,从参数里面解析出节点类型
             CreateMode flags = CreateMode.PERSISTENT;
+            // -e -s 创建顺序的临时节点
             if ((args[1].equals("-e") && args[2].equals("-s"))
                     || (args[1]).equals("-s") && (args[2].equals("-e"))) {
                 first+=2;
                 flags = CreateMode.EPHEMERAL_SEQUENTIAL;
+            // -e 临时节点
             } else if (args[1].equals("-e")) {
                 first++;
                 flags = CreateMode.EPHEMERAL;
+            // -s 持久节点
             } else if (args[1].equals("-s")) {
                 first++;
                 flags = CreateMode.PERSISTENT_SEQUENTIAL;
             }
+            // 处理acl
             if (args.length == first + 4) {
                 acl = parseACLs(args[first+3]);
             }
             path = args[first + 1];
+            // 实际都是调用zk客户端的逻辑
             String newPath = zk.create(path, args[first+2].getBytes(), acl,
                     flags);
             System.err.println("Created " + newPath);

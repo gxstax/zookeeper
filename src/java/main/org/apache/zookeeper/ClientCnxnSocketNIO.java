@@ -116,6 +116,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                         }
                         p.createBB();
                     }
+                    // 开始写
                     sock.write(p.bb);
                     if (!p.bb.hasRemaining()) {  // 没有剩下的了
                         sentCount++;
@@ -189,6 +190,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 }
             }
             // no sendable packet found.
+            // 没有找到要发送的包则返回
             return null;
         }
     }

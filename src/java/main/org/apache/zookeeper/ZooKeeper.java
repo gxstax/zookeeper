@@ -102,6 +102,7 @@ public class ZooKeeper {
         return cnxn.zooKeeperSaslClient;
     }
 
+    // 初始监听管理器
     private final ZKWatchManager watchManager = new ZKWatchManager();
 
     List<String> getDataWatches() {
@@ -646,6 +647,7 @@ public class ZooKeeper {
      * This method is NOT thread safe
      *
      * @param scheme
+     *
      * @param auth
      */
     public void addAuthInfo(String scheme, byte auth[]) {
@@ -792,7 +794,7 @@ public class ZooKeeper {
             throw new KeeperException.InvalidACLException();
         }
         request.setAcl(acl);
-        // 提交请求信息
+        // 提交创建节点请求信息
         ReplyHeader r = cnxn.submitRequest(h, request, response, null);
         if (r.getErr() != 0) {
             throw KeeperException.create(KeeperException.Code.get(r.getErr()),
