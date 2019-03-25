@@ -142,12 +142,14 @@ public class SessionTrackerImpl extends ZooKeeperCriticalThread implements Sessi
     synchronized public void run() {
         try {
             while (running) {
+                // 判断是否超时
                 currentTime = Time.currentElapsedTime();
                 if (nextExpirationTime > currentTime) {
                     this.wait(nextExpirationTime - currentTime);
                     continue;
                 }
                 SessionSet set;
+                // 如果有超时过期的，则从session容器中移除
                 set = sessionSets.remove(nextExpirationTime);
                 if (set != null) {
                     for (SessionImpl s : set.sessions) {

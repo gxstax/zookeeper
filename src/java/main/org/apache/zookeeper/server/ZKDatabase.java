@@ -64,8 +64,10 @@ public class ZKDatabase {
      * make sure on a clear you take care of 
      * all these members.
      */
+    // 数据树
     protected DataTree dataTree;
     protected ConcurrentHashMap<Long, Integer> sessionsWithTimeouts;
+    // 事务快照日志工具类
     protected FileTxnSnapLog snapLog;
     protected long minCommittedLog, maxCommittedLog;
     public static final int commitLogCount = 500;

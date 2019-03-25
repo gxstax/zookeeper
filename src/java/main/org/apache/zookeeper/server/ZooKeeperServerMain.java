@@ -96,12 +96,14 @@ public class ZooKeeperServerMain {
      */
     public void runFromConfig(ServerConfig config) throws IOException {
         LOG.info("Starting server");
+        // 文件事务日志
         FileTxnSnapLog txnLog = null;
         try {
             // Note that this thread isn't going to be doing anything else,
             // so rather than spawning another thread, we will just call
             // run() in this thread.
             // create a file logger url from the command line args
+            // zookerper服务的主要服务类
             final ZooKeeperServer zkServer = new ZooKeeperServer();
             // Registers shutdown handler which will be used to know the
             // server error or shutdown state changes.
@@ -109,6 +111,7 @@ public class ZooKeeperServerMain {
             zkServer.registerServerShutdownHandler(
                     new ZooKeeperServerShutdownHandler(shutdownLatch));
 
+            // 初始化事务日志快照
             txnLog = new FileTxnSnapLog(new File(config.dataLogDir), new File(
                     config.dataDir));
             txnLog.setServerStats(zkServer.serverStats());

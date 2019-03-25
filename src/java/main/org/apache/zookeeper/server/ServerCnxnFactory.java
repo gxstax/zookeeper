@@ -106,6 +106,7 @@ public abstract class ServerCnxnFactory {
     public abstract void closeAll();
     
     static public ServerCnxnFactory createFactory() throws IOException {
+        // 默认使用NIO，可以配置，也可以自己配置成netty
         String serverCnxnFactoryName =
             System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
         if (serverCnxnFactoryName == null) {

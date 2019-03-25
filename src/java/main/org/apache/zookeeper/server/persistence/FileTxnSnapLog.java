@@ -175,6 +175,7 @@ public class FileTxnSnapLog {
      */
     public long restore(DataTree dt, Map<Long, Integer> sessions, 
             PlayBackListener listener) throws IOException {
+        // 从我们的快照日志中读取日志到我们的dt中去
         snapLog.deserialize(dt, sessions);
         return fastForwardFromEdits(dt, sessions, listener);
     }
