@@ -116,6 +116,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                         }
                         p.createBB();
                     }
+                    // 开始写
                     sock.write(p.bb);
                     if (!p.bb.hasRemaining()) {  // 没有剩下的了
                         sentCount++;
@@ -189,6 +190,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 }
             }
             // no sendable packet found.
+            // 没有找到要发送的包则返回
             return null;
         }
     }
@@ -350,7 +352,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
     }
 
     // outgoingQueue 是请求发送队列，是client存储需要被发送到server端的Packet队列
-    // pendingQueue是已经从client发送，但是要等待server响应的packet队列
+    // pendingQueue  是已经从client发送，但是要等待server响应的packet队列
     @Override
     void doTransport(int waitTimeOut, List<Packet> pendingQueue, LinkedList<Packet> outgoingQueue,
                      ClientCnxn cnxn)

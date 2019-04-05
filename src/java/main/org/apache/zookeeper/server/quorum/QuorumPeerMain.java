@@ -99,8 +99,11 @@ public class QuorumPeerMain {
     protected void initializeAndRun(String[] args)
         throws ConfigException, IOException
     {
+        // 描述我们的zoo.cfg文件的配置类
+        // 它的属性就是我们配置文件的可以配置的
         QuorumPeerConfig config = new QuorumPeerConfig();
         if (args.length == 1) {
+            // 配置解析
             config.parse(args[0]);
         }
 
@@ -110,9 +113,8 @@ public class QuorumPeerMain {
                 .getSnapRetainCount(), config.getPurgeInterval());
         purgeMgr.start();
 
-        // 这里会判断config.servers的大小，
-        // 上面我们已经解析过了我们的配置文件，
-        // 如果我们的config中配置了多个server会放到config.services中
+        // 判断我们配置文件是否配置了server，其实就是判断server配置了几个
+        // 如果是配置了多个，那么就启动集群模式，没有配置server就启动单机模式
         if (args.length == 1 && config.servers.size() > 0) {
             // 集群模式
             runFromConfig(config);

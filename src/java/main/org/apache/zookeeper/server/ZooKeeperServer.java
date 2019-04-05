@@ -156,7 +156,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      * Creates a ZooKeeperServer instance. It sets everything up, but doesn't
      * actually start listening for clients until run() is invoked.
      * 
-     * @param dataDir the directory to put the data
+     * @param
      */
     public ZooKeeperServer(FileTxnSnapLog txnLogFactory, int tickTime,
             int minSessionTimeout, int maxSessionTimeout,
@@ -402,9 +402,11 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // 判断dataBase是否为空，如果为空
         // 则这里新建一个dataBase
         //check to see if zkDb is not null
+        // 检查zkDb是否是null，如果是null，则会new一个
         if (zkDb == null) {
             zkDb = new ZKDatabase(this.txnLogFactory);
-        }  
+        }
+        // 判断是否初始化，如果没有初始化，则把数据加载进来
         if (!zkDb.isInitialized()) {
             // 加载数据
             loadData();
@@ -412,9 +414,12 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
     
     public synchronized void startup() {
+        // 客户端和服务端建立连接是有一个session,相当于是一个连接的跟踪器
+        // 它会记录超时时间以及监听事件
         if (sessionTracker == null) {
             createSessionTracker();
         }
+        // 开启跟踪器
         startSessionTracker();
         // 这里比较重要，这里设置请求处理器，包括请求前置处理器，和请求后置处理器
         // 注意，集群模式下，learner服务端都对调用这个方法，但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
@@ -445,6 +450,9 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
     
     protected void startSessionTracker() {
+        // 那么开启干了什么事情
+        // SessionTrackerImpl 实际上是一个线程
+        // 这里需要看SessionTrackerImpl这个类的run方法
         ((SessionTrackerImpl)sessionTracker).start();
     }
 

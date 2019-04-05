@@ -229,6 +229,7 @@ public class ZooKeeperMain {
          * @return true if parsing succeeded.
          */
         public boolean parseCommand( String cmdstring ) {
+            // 解析输入的命令行字符串
             Matcher matcher = ARGS_PATTERN.matcher(cmdstring);
 
             List<String> args = new LinkedList<String>();
@@ -257,6 +258,7 @@ public class ZooKeeperMain {
      */
 
 
+    // 一个记录历史命令的hashMap
     protected void addToHistory(int i,String cmd) {
         history.put(i, cmd);
     }
@@ -312,6 +314,7 @@ public class ZooKeeperMain {
             boolean jlinemissing = false;
             // only use jline if it's in the classpath
             try {
+                // java命令行的实现类
                 Class<?> consoleC = Class.forName("jline.ConsoleReader");
                 Class<?> completorC =
                     Class.forName("org.apache.zookeeper.JLineZNodeCompletor");
@@ -329,7 +332,9 @@ public class ZooKeeperMain {
 
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
+                // 这里的while就是一直解析并执行我们命令行输入的命令
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
+                    // 执行命令行逻辑
                     executeLine(line);
                 }
             } catch (ClassNotFoundException e) {
@@ -367,8 +372,10 @@ public class ZooKeeperMain {
 
     public void executeLine(String line)
     throws InterruptedException, IOException, KeeperException {
+
       if (!line.equals("")) {
         cl.parseCommand(line);
+        // 添加到历史命令集合中
         addToHistory(commandCount,line);
         processCmd(cl);
         commandCount++;
@@ -627,6 +634,9 @@ public class ZooKeeperMain {
     protected boolean processZKCmd(MyCommandOptions co)
         throws KeeperException, IOException, InterruptedException
     {
+        /*
+         * 解析各种命令行信息
+         */
         Stat stat = new Stat();
         String[] args = co.getArgArray();
         String cmd = co.getCommand();
@@ -686,26 +696,31 @@ public class ZooKeeperMain {
             System.out.println("Not connected");
             return false;
         }
-        
+        // 创建节点命令
         if (cmd.equals("create") && args.length >= 3) {
             int first = 0;
             // 构造CreateMode,从参数里面解析出节点类型
             CreateMode flags = CreateMode.PERSISTENT;
+            // -e -s 创建顺序的临时节点
             if ((args[1].equals("-e") && args[2].equals("-s"))
                     || (args[1]).equals("-s") && (args[2].equals("-e"))) {
                 first+=2;
                 flags = CreateMode.EPHEMERAL_SEQUENTIAL;
+            // -e 临时节点
             } else if (args[1].equals("-e")) {
                 first++;
                 flags = CreateMode.EPHEMERAL;
+            // -s 持久节点
             } else if (args[1].equals("-s")) {
                 first++;
                 flags = CreateMode.PERSISTENT_SEQUENTIAL;
             }
+            // 处理acl
             if (args.length == first + 4) {
                 acl = parseACLs(args[first+3]);
             }
             path = args[first + 1];
+            // 实际都是调用zk客户端的逻辑
             String newPath = zk.create(path, args[first+2].getBytes(), acl,
                     flags);
             System.err.println("Created " + newPath);
