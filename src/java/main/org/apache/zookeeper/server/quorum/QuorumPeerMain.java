@@ -110,6 +110,9 @@ public class QuorumPeerMain {
                 .getSnapRetainCount(), config.getPurgeInterval());
         purgeMgr.start();
 
+        // 这里会判断config.servers的大小，
+        // 上面我们已经解析过了我们的配置文件，
+        // 如果我们的config中配置了多个server会放到config.services中
         if (args.length == 1 && config.servers.size() > 0) {
             // 集群模式
             runFromConfig(config);

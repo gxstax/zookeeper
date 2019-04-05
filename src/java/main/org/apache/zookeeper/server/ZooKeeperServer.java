@@ -399,11 +399,14 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     
     public void startdata() 
     throws IOException, InterruptedException {
+        // 判断dataBase是否为空，如果为空
+        // 则这里新建一个dataBase
         //check to see if zkDb is not null
         if (zkDb == null) {
             zkDb = new ZKDatabase(this.txnLogFactory);
         }  
         if (!zkDb.isInitialized()) {
+            // 加载数据
             loadData();
         }
     }

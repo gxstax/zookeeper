@@ -1,0 +1,14 @@
+create /no
+
+
+1. 创建事务日志
+2. 快照，dataBase，文件
+3. 更新内容，操作DataTree
+4. 返回错误或正确信息
+
+
+持久化， 内存
+
+DataBase
+    DataTree
+        DataNode

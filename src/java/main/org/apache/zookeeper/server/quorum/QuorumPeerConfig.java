@@ -140,7 +140,8 @@ public class QuorumPeerConfig {
                 throw new IllegalArgumentException(configFile.toString()
                         + " file is missing");
             }
-
+            // 使用文件流把配置文件加载进来转换为一个Properties
+            // 然后对properties进行解析
             Properties cfg = new Properties();
             FileInputStream in = new FileInputStream(configFile);
             try {
@@ -148,7 +149,7 @@ public class QuorumPeerConfig {
             } finally {
                 in.close();
             }
-
+            // 解析我们的配置信息
             parseProperties(cfg);
         } catch (IOException e) {
             throw new ConfigException("Error processing " + path, e);
@@ -209,7 +210,10 @@ public class QuorumPeerConfig {
                 snapRetainCount = Integer.parseInt(value);
             } else if (key.equals("autopurge.purgeInterval")) {
                 purgeInterval = Integer.parseInt(value);
-            } else if (key.startsWith("server.")) {
+            }
+            // 这里解析配置文件是否有以server.开头的配置，可以判断
+            // 服务是以集群还是单个服务的启动方式
+            else if (key.startsWith("server.")) {
                 int dot = key.indexOf('.');
                 long sid = Long.parseLong(key.substring(dot + 1));
                 String parts[] = splitWithLeadingHostname(value);

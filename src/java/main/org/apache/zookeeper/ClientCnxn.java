@@ -749,6 +749,8 @@ public class ClientCnxn {
             ReplyHeader replyHdr = new ReplyHeader();
 
             replyHdr.deserialize(bbia, "header");
+            // 这里的xid，我们当时在放的时候ping 的Xid就是放入的-2，
+            // 所以这里取的时候如果Xid是-2，则取到的是ping的结果
             if (replyHdr.getXid() == -2) {  // ping 的结果
                 // -2 is the xid for pings
                 if (LOG.isDebugEnabled()) {
