@@ -784,6 +784,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     }
 
     public void processRequest(Request request) {
+        // 这里就是把请求放入到一个队列里面
         // request.addRQRec(">prep="+zks.outstandingChanges.size());
         submittedRequests.add(request);
     }
