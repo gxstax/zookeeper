@@ -716,6 +716,7 @@ public class DataTree {
                     CreateTxn createTxn = (CreateTxn) txn;
                     rc.path = createTxn.getPath();
                     // 创建节点，但是这里都是操作的内存中的数据
+                    // 因为持久化已经在前面处理好了
                     createNode(
                             createTxn.getPath(),
                             createTxn.getData(),

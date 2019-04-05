@@ -115,6 +115,10 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements Req
 
     @Override
     public void run() {
+
+        // 当前处理器的父处理器在执行run方法的时候已经把请求放入到queuedRequests
+        // 这个队列中去了，所以到了这个处理器，当然也就是处理这个队列中的数据了
+        // 这个处理器就是一个持久化的处理器
         try {
             int logCount = 0;
 
@@ -167,11 +171,13 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements Req
                             }
                             logCount = 0;
                         }
-                    } else if (toFlush.isEmpty()) { //刷到磁盘的队列为空
+                    } else if (toFlush.isEmpty()) {
+                        //刷到磁盘的队列为空
                         // optimization for read heavy workloads
                         // iff this is a read, and there are no pending
                         // flushes (writes), then just pass this to the next
                         // processor
+                        // 这里调用最后一个处理器的processRequest方法
                         if (nextProcessor != null) {
                             nextProcessor.processRequest(si);
                             if (nextProcessor instanceof Flushable) {
@@ -202,6 +208,7 @@ public class SyncRequestProcessor extends ZooKeeperCriticalThread implements Req
         if (toFlush.isEmpty())
             return;
 
+        // 日志写入提交
         zks.getZKDatabase().commit();
         while (!toFlush.isEmpty()) {
             Request i = toFlush.remove();

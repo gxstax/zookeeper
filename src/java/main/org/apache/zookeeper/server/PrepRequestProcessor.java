@@ -119,6 +119,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     @Override
     public void run() {
         try {
+            // 看这里果然就是从submittedRequests取请求来进行处理
             // 从队列获取命令进行处理
             while (true) {
                 Request request = submittedRequests.take();
@@ -132,7 +133,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 if (Request.requestOfDeath == request) {
                     break;
                 }
-                // 往下
+                // 取出请求处理，我们跟进去看
                 pRequest(request);
             }
         } catch (RequestProcessorException e) {
@@ -330,7 +331,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 zks.sessionTracker.checkSession(request.sessionId, request.getOwner());
                 CreateRequest createRequest = (CreateRequest)record;   
                 if(deserialize)
+                    // 请求数据的反序列化
                     ByteBufferInputStream.byteBuffer2Record(request.request, createRequest);
+                // 获取路径信息
                 String path = createRequest.getPath();
                 int lastSlash = path.lastIndexOf('/');
                 if (lastSlash == -1 || path.indexOf('\0') != -1 || failCreate) {
@@ -344,6 +347,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 }
                 String parentPath = path.substring(0, lastSlash);
                 // 获取父节点的最后一次修改记录
+                // 因为一个节点的值只和最近一次修改记录有关
                 ChangeRecord parentRecord = getRecordForPath(parentPath);
 
                 checkACL(zks, parentRecord.acl, ZooDefs.Perms.CREATE,
@@ -381,10 +385,11 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 if (createMode.isEphemeral()) {
                     s.setEphemeralOwner(request.sessionId);
                 }
+                // 每次修改字节点，父节点的Cversion都会+1
                 parentRecord = parentRecord.duplicate(request.hdr.getZxid());
                 parentRecord.childCount++;
                 parentRecord.stat.setCversion(newCversion);
-                // 把修改记录加入到集合容器中去，那么就肯定有线程服务去取修改记录进行修改
+                // 把修改记录加入到集合容器中去，那么就肯定有线程服务去去修改记录进行修改
                 addChangeRecord(parentRecord);
                 addChangeRecord(new ChangeRecord(request.hdr.getZxid(), path, s,
                         0, listACL));
@@ -538,6 +543,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
      * singleton, so there will be a single thread calling this code.
      * 处理命令的核心方法
      * @param request
+     *
+     * 卧槽，卧槽，果然就是，各种熟悉的命令
      */
     @SuppressWarnings("unchecked")
     protected void pRequest(Request request) throws RequestProcessorException {

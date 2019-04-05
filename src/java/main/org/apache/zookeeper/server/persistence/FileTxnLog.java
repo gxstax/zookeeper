@@ -322,6 +322,7 @@ public class FileTxnLog implements TxnLog {
      */
     public synchronized void commit() throws IOException {
         if (logStream != null) {
+            // 写日志
             logStream.flush();
         }
         for (FileOutputStream log : streamsToFlush) {

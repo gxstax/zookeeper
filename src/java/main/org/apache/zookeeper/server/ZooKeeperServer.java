@@ -434,14 +434,24 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
 
     // 请求处理器
     protected void setupRequestProcessors() {
+        // 这里其实是声明了3个处理器，然后组成一个调用链
+
+
+        // 这里声明第一个处理器，也就是最后执行的那个
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
+        // 这里声明第二个处理器，并且把nextProcessor执行上一个处理器，表示执行完当前这个会去执行上一个
         RequestProcessor syncProcessor = new SyncRequestProcessor(this,
                 finalProcessor);
-        // 这里也是一个线程类，调用start肯定要执行run方法，
+        ((SyncRequestProcessor)syncProcessor).start();
+        // 这里声明第三个处理器
+        // 这里是一个线程类，调用start肯定要执行run方法，
         // 到了这里，其实又开启了一个线程，前面我们已经开启了NIOServerCnxnFactory的一个线程
         // 所以我们先进入到NIOServerCnxnFactory这个类里面的run方法
-        // 然后再进到SyncRequestProcessor这个类的run方法
-        ((SyncRequestProcessor)syncProcessor).start();
+        // NIOServerCnxnFactory其实调用了PrepRequestProcessor类的方法
+        // 把请求放入到submittedRequests队列中去了
+        // 然后再进到PrepRequestProcessor这个类的run方法
+        // 看看这个run方法是不是就是从队列中取数据处理（这里注意：在new的时候我们把syncProcessor传了进去，
+        //   并且把nextprocessor指向了syncProcessor，所以执行完后，就会执行SyncRequestProcessor的run方法）
         firstProcessor = new PrepRequestProcessor(this, syncProcessor);
         ((PrepRequestProcessor)firstProcessor).start();
     }
@@ -1106,6 +1116,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         ProcessTxnResult rc;
         int opCode = hdr.getType();
         long sessionId = hdr.getClientId();
+        // 跟进到这里去看它到底做了什么操作
         rc = getZKDatabase().processTxn(hdr, txn);
         if (opCode == OpCode.createSession) {
             if (txn instanceof CreateSessionTxn) {
