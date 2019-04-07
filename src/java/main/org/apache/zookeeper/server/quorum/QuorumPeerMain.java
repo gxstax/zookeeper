@@ -142,6 +142,7 @@ public class QuorumPeerMain {
           cnxnFactory.configure(config.getClientPortAddress(),
                                 config.getMaxClientCnxns());
 
+          // quorumPeer是集群中的单个服务
           quorumPeer = getQuorumPeer();
 
           quorumPeer.setQuorumPeers(config.getServers());

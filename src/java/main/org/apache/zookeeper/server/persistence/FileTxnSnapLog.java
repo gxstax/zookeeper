@@ -177,6 +177,11 @@ public class FileTxnSnapLog {
             PlayBackListener listener) throws IOException {
         // 从我们的快照日志中读取日志到我们的dt中去
         snapLog.deserialize(dt, sessions);
+        // 从事务日志中恢复数据到dt
+        // 这个是处理中途服务挂掉的情况
+        // 比如有12345678个事务
+        // 如果打快照的位置在4，事务执行到了8，那么从4往后到8的事务将会丢失
+        // 这里就是从快照中读取完打快照的位置是4，然后从5开始去事务文件去找
         return fastForwardFromEdits(dt, sessions, listener);
     }
 
