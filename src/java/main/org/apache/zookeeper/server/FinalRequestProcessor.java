@@ -104,6 +104,9 @@ public class FinalRequestProcessor implements RequestProcessor {
             while (!zks.outstandingChanges.isEmpty()
                     && zks.outstandingChanges.get(0).zxid <= request.zxid) {
                 // 这里是获取到修改记录
+                // 这里其实是移除了list的第一个数据,第一个其实就是父节点修改
+                // 因为每次修改都要对父节点的一个cVersion+1，不知道zk搞的是个什么鬼玩意
+                // 害老子一直在这debug
                 ChangeRecord cr = zks.outstandingChanges.remove(0);
                 if (cr.zxid < request.zxid) {
                     LOG.warn("Zxid outstanding "

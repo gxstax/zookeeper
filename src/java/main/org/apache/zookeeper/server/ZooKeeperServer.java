@@ -423,12 +423,14 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // 开启跟踪器
         startSessionTracker();
         // 这里比较重要，这里设置请求处理器，包括请求前置处理器，和请求后置处理器
-        // 注意，集群模式下，learner服务端都对调用这个方法，但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
+        // 注意，集群模式下，learner服务端都对调用这个方法，
+        // 但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
         setupRequestProcessors();
 
         registerJMX();
 
         setState(State.RUNNING);
+        // notifyAll方法，释放之前wait()的所有线程
         notifyAll();
     }
 

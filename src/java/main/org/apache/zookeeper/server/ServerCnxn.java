@@ -53,7 +53,8 @@ public abstract class ServerCnxn implements Stats, Watcher {
     // This is just an arbitrary object to represent requests issued by
     // (aka owned by) this class
     final public static Object me = new Object();
-    
+
+    // 保存我们创建的用户信息
     protected ArrayList<Id> authInfo = new ArrayList<Id>();
 
     /**

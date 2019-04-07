@@ -281,11 +281,17 @@ public class ZooKeeperMain {
         }
         host = newHost;
         boolean readOnly = cl.getOption("readonly") != null;
+        // 初始化链接类
         zk = new ZooKeeper(host,
                  Integer.parseInt(cl.getOption("timeout")),
                  new MyWatcher(), readOnly);
     }
-    
+
+    /**
+     * @Description 客户端运行的main方法
+     * @Param [args]
+     * @return void
+     **/
     public static void main(String args[])
         throws KeeperException, IOException, InterruptedException
     {
@@ -843,6 +849,8 @@ public class ZooKeeperMain {
             if (args.length >= 3)
                 b = args[2].getBytes();
 
+            // args[1] 是scheme参数 digest/ip
+            // args[2] 是后面的用户信息或者ip信息
             zk.addAuthInfo(args[1], b);
         } else if (!commandMap.containsKey(cmd)) {
             usage();

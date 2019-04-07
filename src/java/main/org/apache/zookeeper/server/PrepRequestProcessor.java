@@ -275,6 +275,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         }
     }
 
+    // acl是当前节点的已经存在了的验权规则 比如现在我们用 scheme：digest； zhangsan:123456:ad, ip:192.168.0.123:adc;来进行验权
+    // perm是当前这个操作需要的权限
+    // ids 是我们当前链接add进来的验权规则，就是authinfo列表中我们addauth进去的权限规则
     static void checkACL(ZooKeeperServer zks, List<ACL> acl, int perm,
             List<Id> ids) throws KeeperException.NoAuthException {
         if (skipACL) {
@@ -290,6 +293,13 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         }
         for (ACL a : acl) {
             Id id = a.getId();
+            // r：00001
+            // w：00010
+            // c：00100
+            // d：01000
+            // a：10000
+            // 如果我们这里验证的是rda 那么getPerms的值就是25
+            // 然后在和你现在已经有的权限perm与操作，就可以判断是否有你要的权限
             if ((a.getPerms() & perm) != 0) {
                 if (id.getScheme().equals("world")
                         && id.getId().equals("anyone")) {
@@ -297,6 +307,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 }
                 AuthenticationProvider ap = ProviderRegistry.getProvider(id
                         .getScheme());
+                // 具体的验证
                 if (ap != null) {
                     for (Id authId : ids) {                        
                         if (authId.getScheme().equals(id.getScheme())
@@ -369,7 +380,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                     // ignore this one
                 }
                 // 临时节点
-                // ephemeralOwner:如果znode是ephemeral类型节点，则这是znode所有者的 session ID。 如果znode不是ephemeral节点，则该字段设置为零。
+                // ephemeralOwner:如果znode是ephemeral类型节点，则这是znode所有者的 session ID。
+                // 如果znode不是ephemeral节点，则该字段设置为零。
                 // 父节点是不是临时节点，ephemeralOwner不等于0则代表是临时节点
                 boolean ephemeralParent = parentRecord.stat.getEphemeralOwner() != 0;
                 if (ephemeralParent) {
@@ -453,6 +465,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 path = setAclRequest.getPath();
                 validatePath(path, request.sessionId);
                 listACL = removeDuplicates(setAclRequest.getAcl());
+                // 验证权限，request.authInfo会默认给我们加上一个用户
+                // 因为如果没有默认的用户，本地客户端没有权限
                 if (!fixupACL(request.authInfo, listACL)) {
                     throw new KeeperException.InvalidACLException(path);
                 }
@@ -479,12 +493,19 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 zks.setOwner(request.sessionId, request.getOwner());
                 break;
             case OpCode.closeSession:
+                // 处理closeSession
                 // We don't want to do this check since the session expiration thread
                 // queues up this operation without being the session owner.
                 // this request is the last of the session so it should be ok
                 //zks.sessionTracker.checkSession(request.sessionId, request.getOwner());
+                // 获取临时节点
+                // 其实这里取得就是实现加载进来的节点信息
+                // 取的是zks的zkDb里面的内容，而zkDb在服务初始化的时候
+                // 会进行数据加载，把treeDataBase中的数据先加载进来
+                // 后面客户端新创建的节点信息也会加载进来，所以这里就可以直接取的到
                 HashSet<String> es = zks.getZKDatabase()
                         .getEphemerals(request.sessionId);
+                // outstandingChanges队列是服务端处理客户端请求添加进去的请求信息队列
                 synchronized (zks.outstandingChanges) {
                     for (ChangeRecord c : zks.outstandingChanges) {
                         if (c.stat == null) {
@@ -495,6 +516,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                         }
                     }
                     for (String path2Delete : es) {
+                        // 把更改的节点信息放入到发送到服务端的队列中去
                         addChangeRecord(new ChangeRecord(request.hdr.getZxid(),
                                 path2Delete, null, 0, null));
                     }
@@ -644,6 +666,8 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 
                 break;
 
+            //当客户端输入一个quit命令的时候，会发送给服务端一个closeSession
+            // 这里是处理这个命令
             //create/close session don't require request record
             case OpCode.createSession:
             case OpCode.closeSession:
@@ -651,6 +675,7 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
                 break;
  
             //All the rest don't need to create a Txn - just verify session
+            // 下面这些命令不需要创建TXN，也就是不需要对内存中的东西进行操作，仅仅需要验证session
             case OpCode.sync:
             case OpCode.exists:
             case OpCode.getData:
@@ -700,7 +725,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
         }
         request.zxid = zks.getZxid();
 
-        // 调用Sync
+        // 这个方法其实就是把请求放入到一个队列里面去，
+        // 然后SyncProcessor这个处理器在执行的时候
+        // 就会去这个队列里面去去请求来处理
         nextProcessor.processRequest(request);
     }
 

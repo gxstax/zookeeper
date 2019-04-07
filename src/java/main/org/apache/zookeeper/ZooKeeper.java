@@ -192,6 +192,8 @@ public class ZooKeeper {
                 }
 
                 return result;
+
+            // 节点修改以及创建
             case NodeDataChanged:
             case NodeCreated:
                 synchronized (dataWatches) {

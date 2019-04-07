@@ -249,7 +249,9 @@ public class ClientCnxn {
 
     /**
      * This class allows us to pass the headers and the relevant records around.
-     * 并非Packet中所有的属性都在客户端与服务端之间进行网络传输，只会将requestHeader、request、readOnly三个属性序列化，并生成可用于底层网络传输的ByteBuffer，其他属性都保存在客户端的上下文中，不会进行与服务端之间的网络传输。
+     * 并非Packet中所有的属性都在客户端与服务端之间进行网络传输，
+     * 只会将requestHeader、request、readOnly三个属性序列化，并生成可用于底层网络传输的ByteBuffer，
+     * 其他属性都保存在客户端的上下文中，不会进行与服务端之间的网络传输。
      */
     static class Packet {
         RequestHeader requestHeader;
@@ -456,7 +458,8 @@ public class ClientCnxn {
     }
 
     class EventThread extends ZooKeeperThread {
-        // 这里为什么会用的Object, //临时存放需要被触发的Obj，包含Watcher和AsyncCallBack
+        // 这里为什么会用的Object,
+        // 临时存放需要被触发的Obj，包含Watcher和AsyncCallBack
         private final LinkedBlockingQueue<Object> waitingEvents =
             new LinkedBlockingQueue<Object>();
 
@@ -488,6 +491,7 @@ public class ClientCnxn {
                             event.getPath()),
                             event);
             // queue the pair (watch set & event) for later processing
+            // 把这个事件保存到waitingEvents队列里面去
             waitingEvents.add(pair);
         }
 
@@ -748,7 +752,7 @@ public class ClientCnxn {
         private Random r = new Random(System.nanoTime());        
         private boolean isFirstConnect = true;
 
-        // 读取响应
+        // 读取服务端响应信息
         void readResponse(ByteBuffer incomingBuffer) throws IOException {
             ByteBufferInputStream bbis = new ByteBufferInputStream(
                     incomingBuffer);
@@ -788,6 +792,7 @@ public class ClientCnxn {
                     LOG.debug("Got notification sessionid:0x"
                         + Long.toHexString(sessionId));
                 }
+                // 定义一个监听器事件
                 WatcherEvent event = new WatcherEvent();
                 event.deserialize(bbia, "response");
 
@@ -805,6 +810,7 @@ public class ClientCnxn {
                     }
                 }
 
+                // 对watcher事件进行类型封装
                 WatchedEvent we = new WatchedEvent(event);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Got " + we + " for sessionid 0x"
@@ -1527,6 +1533,7 @@ public class ClientCnxn {
         return packet;
     }
 
+    // 增加用户命令
     public void addAuthInfo(String scheme, byte auth[]) {
         if (!state.isAlive()) {
             return;

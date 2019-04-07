@@ -71,6 +71,7 @@ public class QuorumPeerMain {
     protected QuorumPeer quorumPeer;
 
     /**
+     * 服务端运行的类main方法
      * To start the replicated server specify the configuration file name on
      * the command line.
      * @param args path to the configfile

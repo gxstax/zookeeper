@@ -60,6 +60,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
      */
     void doIO(List<Packet> pendingQueue, LinkedList<Packet> outgoingQueue, ClientCnxn cnxn)
       throws InterruptedException, IOException {
+        // 获取一个Channel
         SocketChannel sock = (SocketChannel) sockKey.channel();
         if (sock == null) {
             throw new IOException("Socket is null!");
@@ -90,7 +91,9 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                     incomingBuffer = lenBuffer;
                     updateLastHeard();
                     initialized = true;
-                } else { //如果已连接，并且已经给incomingBuffer分配了对应len的空间
+                } else {
+                    // 如果已连接，并且已经给incomingBuffer分配了对应len的空间
+                    // 这里会读服务端返回的请求
                     sendThread.readResponse(incomingBuffer);
                     lenBuffer.clear();
                     incomingBuffer = lenBuffer;

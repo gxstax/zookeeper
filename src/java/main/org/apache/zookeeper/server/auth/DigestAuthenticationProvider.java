@@ -88,6 +88,7 @@ public class DigestAuthenticationProvider implements AuthenticationProvider {
         return i == 62 ? '+' : '/';
     }
 
+    // 对用户名密码信息进行签名
     static public String generateDigest(String idPassword)
             throws NoSuchAlgorithmException {
         String parts[] = idPassword.split(":", 2);
@@ -101,7 +102,9 @@ public class DigestAuthenticationProvider implements AuthenticationProvider {
     {
         String id = new String(authData);
         try {
+            // 对用户名密码信息进行签名认证
             String digest = generateDigest(id);
+            // 判断是否是super用户，如果是，就往authInfo这个集合中多存入一个用户信息（"super"，""）
             if (digest.equals(superDigest)) {
                 cnxn.addAuthInfo(new Id("super", ""));
             }
