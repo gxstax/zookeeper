@@ -4,6 +4,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.NodeCacheListener;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.WatchedEvent;
@@ -17,14 +18,15 @@ import org.apache.zookeeper.Watcher;
  * @Version 1.0
  **/
 public class CuratorClient {
+
+    static String PATH =  "/curator/lock";
+
     public static void main(String[] args) throws Exception {
         CuratorFramework client = CuratorFrameworkFactory.newClient("localhost:2181",
                 new RetryNTimes(3, 10000));
         client.start();
 
-//        client.create().withMode(CreateMode.EPHEMERAL).forPath("/data", "2".getBytes());
-
-        String path = "/data";
+//        client.create().withMode(CreateMode.EPHEMERAL).forPath(PATH, "2".getBytes());
 
 //        NodeCache nodeCache = new NodeCache(client, path);
 //        nodeCache.start(false);
@@ -40,7 +42,7 @@ public class CuratorClient {
             public void process(WatchedEvent event) {
                 System.out.println("使用了watch");
             }
-        }).forPath(path);
+        }).forPath(PATH);
 
         System.in.read();
     }
