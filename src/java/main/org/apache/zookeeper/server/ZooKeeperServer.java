@@ -124,6 +124,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      */
     static final private long superSecret = 0XB3415C00L;
 
+    // 记录处理请求的数量
     private final AtomicInteger requestsInProcess = new AtomicInteger(0);
     final List<ChangeRecord> outstandingChanges = new ArrayList<ChangeRecord>();
     // this data structure must be accessed under the outstandingChanges lock
@@ -156,7 +157,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
      * Creates a ZooKeeperServer instance. It sets everything up, but doesn't
      * actually start listening for clients until run() is invoked.
      * 
-     * @param dataDir the directory to put the data
+     * @param
      */
     public ZooKeeperServer(FileTxnSnapLog txnLogFactory, int tickTime,
             int minSessionTimeout, int maxSessionTimeout,
@@ -399,6 +400,8 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     
     public void startdata() 
     throws IOException, InterruptedException {
+        // 判断dataBase是否为空，如果为空
+        // 则这里新建一个dataBase
         //check to see if zkDb is not null
         // 检查zkDb是否是null，如果是null，则会new一个
         if (zkDb == null) {
@@ -406,6 +409,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
         // 判断是否初始化，如果没有初始化，则把数据加载进来
         if (!zkDb.isInitialized()) {
+            // 加载数据
             loadData();
         }
     }
@@ -419,20 +423,37 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // 开启跟踪器
         startSessionTracker();
         // 这里比较重要，这里设置请求处理器，包括请求前置处理器，和请求后置处理器
-        // 注意，集群模式下，learner服务端都对调用这个方法，但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
+        // 注意，集群模式下，learner服务端都对调用这个方法，
+        // 但是比如FollowerZookeeperServer和ObserverZooKeeperServer都会重写这个方法
         setupRequestProcessors();
 
         registerJMX();
 
         setState(State.RUNNING);
+        // notifyAll方法，释放之前wait()的所有线程
         notifyAll();
     }
 
+    // 请求处理器
     protected void setupRequestProcessors() {
+        // 这里其实是声明了3个处理器，然后组成一个调用链
+
+
+        // 这里声明第一个处理器，也就是最后执行的那个
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
+        // 这里声明第二个处理器，并且把nextProcessor执行上一个处理器，表示执行完当前这个会去执行上一个
         RequestProcessor syncProcessor = new SyncRequestProcessor(this,
                 finalProcessor);
         ((SyncRequestProcessor)syncProcessor).start();
+        // 这里声明第三个处理器
+        // 这里是一个线程类，调用start肯定要执行run方法，
+        // 到了这里，其实又开启了一个线程，前面我们已经开启了NIOServerCnxnFactory的一个线程
+        // 所以我们先进入到NIOServerCnxnFactory这个类里面的run方法
+        // NIOServerCnxnFactory其实调用了PrepRequestProcessor类的方法
+        // 把请求放入到submittedRequests队列中去了
+        // 然后再进到PrepRequestProcessor这个类的run方法
+        // 看看这个run方法是不是就是从队列中取数据处理（这里注意：在new的时候我们把syncProcessor传了进去，
+        //   并且把nextprocessor指向了syncProcessor，所以执行完后，就会执行SyncRequestProcessor的run方法）
         firstProcessor = new PrepRequestProcessor(this, syncProcessor);
         ((PrepRequestProcessor)firstProcessor).start();
     }
@@ -736,9 +757,13 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
     }
     
     public void submitRequest(Request si) {
+        // 判断请求是否初始化完成
         if (firstProcessor == null) {
             synchronized (this) {
                 try {
+                    // 这里是等待将所有的请求都传给请求处理器，当所有的请求都就绪后，
+                    // state标志会变为RUNNING，所以这里如果一直是INITIAL的化就会
+                    // 一直等待，知道请求就绪
                     // Since all requests are passed to the request
                     // processor it should wait for setting up the request
                     // processor chain. The state will be updated to RUNNING
@@ -756,9 +781,11 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         }
         try {
             touch(si.cnxn);
+            // 判读请求的合法性
             boolean validpacket = Request.isValid(si.type);
             if (validpacket) {
-                // 往下，这里默认用的是PrepRequestProcessor，并且这是一个线程，会不停的从队列中获取命令进行处理
+                // 往下，这里默认用的是PrepRequestProcessor，
+                // 并且这是一个线程，会不停的从队列中获取命令进行处理
                 firstProcessor.processRequest(si);
                 // 处理中的请求加1
                 if (si.cnxn != null) {
@@ -982,6 +1009,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         // pointing
         // to the start of the txn
         incomingBuffer = incomingBuffer.slice();
+        // 这里的auth其实就相当于我们命令行的addauth这个命令
         if (h.getType() == OpCode.auth) {
             LOG.info("got auth packet " + cnxn.getRemoteSocketAddress());
             AuthPacket authPacket = new AuthPacket();
@@ -1023,6 +1051,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
                 cnxn.sendResponse(rh, null, null);
             }
             return;
+        // 不是auth命令会走这里的分支
         } else {
             if (h.getType() == OpCode.sasl) {
                 Record rsp = processSasl(incomingBuffer,cnxn);
@@ -1030,12 +1059,13 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
                 cnxn.sendResponse(rh,rsp, "response"); // not sure about 3rd arg..what is it?
                 return;
             }
+            //也不是sasl所以走这里分支
             else {
                 // 注意这里构造请求的时候会吧cnxn中的authInfo加入到request中去
                 Request si = new Request(cnxn, cnxn.getSessionId(), h.getXid(),
                   h.getType(), incomingBuffer, cnxn.getAuthInfo());
                 si.setOwner(ServerCnxn.me);
-                // 提交请求
+                // 提交请求，主要进到这里看它做了什么操作
                 submitRequest(si);
             }
         }
@@ -1088,6 +1118,7 @@ public class ZooKeeperServer implements SessionExpirer, ServerStats.Provider {
         ProcessTxnResult rc;
         int opCode = hdr.getType();
         long sessionId = hdr.getClientId();
+        // 跟进到这里去看它到底做了什么操作
         rc = getZKDatabase().processTxn(hdr, txn);
         if (opCode == OpCode.createSession) {
             if (txn instanceof CreateSessionTxn) {

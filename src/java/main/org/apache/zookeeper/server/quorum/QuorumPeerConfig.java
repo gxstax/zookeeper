@@ -140,7 +140,8 @@ public class QuorumPeerConfig {
                 throw new IllegalArgumentException(configFile.toString()
                         + " file is missing");
             }
-
+            // 使用文件流把配置文件加载进来转换为一个Properties
+            // 然后对properties进行解析
             Properties cfg = new Properties();
             FileInputStream in = new FileInputStream(configFile);
             try {
@@ -148,7 +149,7 @@ public class QuorumPeerConfig {
             } finally {
                 in.close();
             }
-
+            // 解析我们的配置信息
             parseProperties(cfg);
         } catch (IOException e) {
             throw new ConfigException("Error processing " + path, e);
@@ -195,6 +196,8 @@ public class QuorumPeerConfig {
             } else if (key.equals("quorumListenOnAllIPs")) {
                 quorumListenOnAllIPs = Boolean.parseBoolean(value);
             } else if (key.equals("peerType")) {
+                // peerType 我们只会在observe观察者服务配置文件中配置，
+                // 一般follow跟随者是不配置这个的
                 if (value.toLowerCase().equals("observer")) {
                     peerType = LearnerType.OBSERVER;
                 } else if (value.toLowerCase().equals("participant")) {
@@ -209,7 +212,10 @@ public class QuorumPeerConfig {
                 snapRetainCount = Integer.parseInt(value);
             } else if (key.equals("autopurge.purgeInterval")) {
                 purgeInterval = Integer.parseInt(value);
-            } else if (key.startsWith("server.")) {
+            }
+            // 这里解析配置文件是否有以server.开头的配置，可以判断
+            // 服务是以集群还是单个服务的启动方式
+            else if (key.startsWith("server.")) {
                 int dot = key.indexOf('.');
                 long sid = Long.parseLong(key.substring(dot + 1));
                 String parts[] = splitWithLeadingHostname(value);
@@ -278,6 +284,8 @@ public class QuorumPeerConfig {
                 System.setProperty("zookeeper." + key, value);
             }
         }
+
+
         if (!quorumEnableSasl && quorumServerRequireSasl) {
             throw new IllegalArgumentException(
                     QuorumAuth.QUORUM_SASL_AUTH_ENABLED
@@ -380,6 +388,7 @@ public class QuorumPeerConfig {
                 if(servers.size() != serverGroup.size())
                     throw new ConfigException("Every server must be in exactly one group");
                 /*
+                 * 服务端的默认权重是 1
                  * The deafult weight of a server is 1
                  */
                 for(QuorumServer s : servers.values()){
@@ -401,6 +410,7 @@ public class QuorumPeerConfig {
                 quorumVerifier = new QuorumMaj(servers.size()); // 目前这个servers不包括参与者，所以再算过半的时候不包括观察者
             }
 
+            // 前面进行完领导者选举则把服务合并起来
             // Now add observers to servers, once the quorums have been
             // figured out
             servers.putAll(observers); // 这里才把参与者加到servers中区
@@ -424,7 +434,9 @@ public class QuorumPeerConfig {
                 throw new IllegalArgumentException("serverid " + myIdString
                         + " is not a number");
             }
-            
+
+            // 如果观察者配置文件的peertype配置写错，或者没写，
+            // 这里会根据server后面的配置为准
             // Warn about inconsistent peer type
             LearnerType roleByServersList = observers.containsKey(serverId) ? LearnerType.OBSERVER
                     : LearnerType.PARTICIPANT;

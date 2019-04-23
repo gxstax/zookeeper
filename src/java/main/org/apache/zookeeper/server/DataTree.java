@@ -108,6 +108,7 @@ public class DataTree {
     private final PathTrie pTrie = new PathTrie();
 
     /**
+     * 这里是根据sessionId 保存的节点信息
      * This hashtable lists the paths of the ephemeral nodes of a session.
      */
     private final Map<Long, HashSet<String>> ephemerals =
@@ -716,6 +717,7 @@ public class DataTree {
                     CreateTxn createTxn = (CreateTxn) txn;
                     rc.path = createTxn.getPath();
                     // 创建节点，但是这里都是操作的内存中的数据
+                    // 因为持久化已经在前面处理好了
                     createNode(
                             createTxn.getPath(),
                             createTxn.getData(),
@@ -887,14 +889,17 @@ public class DataTree {
         // so there is no need for synchronization. The list is not
         // changed here. Only create and delete change the list which
         // are again called from FinalRequestProcessor in sequence.
+        // 这里是我们客户端的一个quit请求最终到服务端的执行，
+        // 这里我们看到会把临时节点remove掉
         HashSet<String> list = ephemerals.remove(session);
+
         if (list != null) {
             for (String path : list) {
                 try {
+                    // 删除内存中的临时节点
                     deleteNode(path, zxid);
                     if (LOG.isDebugEnabled()) {
-                        LOG
-                                .debug("Deleting ephemeral node " + path
+                        LOG.debug("Deleting ephemeral node " + path
                                         + " for session 0x"
                                         + Long.toHexString(session));
                     }

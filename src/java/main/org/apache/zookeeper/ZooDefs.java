@@ -73,17 +73,17 @@ public class ZooDefs {
 
     @InterfaceAudience.Public
     public interface Perms {
-        int READ = 1 << 0;  // 1
+        int READ = 1 << 0;  // 读操作对应的十进制数：1
 
-        int WRITE = 1 << 1;  // 2
+        int WRITE = 1 << 1;  // 写操作对应的十进制数：2
 
-        int CREATE = 1 << 2; // 4
+        int CREATE = 1 << 2; // 创建操作对应的十进制数：4
 
-        int DELETE = 1 << 3; // 8
+        int DELETE = 1 << 3; // 删除操作对应的十进制数：8
 
-        int ADMIN = 1 << 4; // 16
+        int ADMIN = 1 << 4; // 管理员作对应的十进制数：16
 
-        int ALL = READ | WRITE | CREATE | DELETE | ADMIN;
+        int ALL = READ | WRITE | CREATE | DELETE | ADMIN; // ALL 二进制 11111 也就是：31
     }
 
     @InterfaceAudience.Public

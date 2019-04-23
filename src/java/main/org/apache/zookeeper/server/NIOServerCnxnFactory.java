@@ -123,9 +123,13 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     @Override
     public void startup(ZooKeeperServer zks) throws IOException,
             InterruptedException {
+        // 启动当前线程
         start();
+        // 设置服务实例
         setZooKeeperServer(zks);
+        // 加载数据
         zks.startdata();
+        // 里面会开启一个链接的跟踪器
         zks.startup();
     }
 
@@ -237,6 +241,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                             addCnxn(cnxn);
                         }
                     } else if ((k.readyOps() & (SelectionKey.OP_READ | SelectionKey.OP_WRITE)) != 0) {
+                        // 前面我们看客户端代码的时候知道客户端会不定时发送ping到服务端，放到队列里去的
                         // 接收数据,这里会间歇性的接收到客户端ping
                         NIOServerCnxn c = (NIOServerCnxn) k.attachment();
                         c.doIO(k);

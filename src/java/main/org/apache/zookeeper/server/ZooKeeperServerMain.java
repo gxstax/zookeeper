@@ -86,6 +86,7 @@ public class ZooKeeperServerMain {
             config.parse(args);
         }
 
+        // 跟进去看这个方法
         runFromConfig(config);
     }
 

@@ -90,8 +90,9 @@
 
 #define IF_DEBUG(x) if(logLevel==ZOO_LOG_LEVEL_DEBUG) {x;}
 
-const int ZOOKEEPER_WRITE = 1 << 0;
-const int ZOOKEEPER_READ = 1 << 1;
+const int ZOOKEEPER_WRITE = 1 << 0; // 写操作对应的十进制数：1
+
+const int ZOOKEEPER_READ = 1 << 1; // 读操作对应的十进制数：2
 
 const int ZOO_EPHEMERAL = 1 << 0;
 const int ZOO_SEQUENCE = 1 << 1;

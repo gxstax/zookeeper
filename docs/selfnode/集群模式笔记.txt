@@ -1,0 +1,7 @@
+---- 集群模式加载过程  -----
+
+1 加载配置
+2 启动socket
+3 leader选举
+4 初始化RequestProcessor
+5 返回response

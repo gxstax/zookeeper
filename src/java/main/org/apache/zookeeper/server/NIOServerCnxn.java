@@ -135,6 +135,7 @@ public class NIOServerCnxn extends ServerCnxn {
                if (sock.isOpen()) {
                    sock.write(bb);
                }
+               // 服务端的packetSend
                packetSent();
            } 
        } catch (IOException ie) {
@@ -208,7 +209,7 @@ public class NIOServerCnxn extends ServerCnxn {
             if (!initialized) {
                 readConnectRequest();
             } else {
-                // 往下
+                // 读请求，进去看看它做了什么
                 readRequest();
             }
             lenBuffer.clear();

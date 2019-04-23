@@ -98,10 +98,15 @@ public class FinalRequestProcessor implements RequestProcessor {
             ZooTrace.logRequest(LOG, traceMask, 'E', request, "");
         }
         ProcessTxnResult rc = null;
+        // 这里的outstandingChanges是在PreRequestProcessor类中把改变的信息添加进去的
         // 从修改记录列表中循环提交修改，包括处理事务，
         synchronized (zks.outstandingChanges) {
             while (!zks.outstandingChanges.isEmpty()
                     && zks.outstandingChanges.get(0).zxid <= request.zxid) {
+                // 这里是获取到修改记录
+                // 这里其实是移除了list的第一个数据,第一个其实就是父节点修改
+                // 因为每次修改都要对父节点的一个cVersion+1，不知道zk搞的是个什么鬼玩意
+                // 害老子一直在这debug
                 ChangeRecord cr = zks.outstandingChanges.remove(0);
                 if (cr.zxid < request.zxid) {
                     LOG.warn("Zxid outstanding "
@@ -116,6 +121,7 @@ public class FinalRequestProcessor implements RequestProcessor {
                TxnHeader hdr = request.hdr;
                Record txn = request.txn;
 
+               // 这里去处理请求，然后拿到请求结果
                rc = zks.processTxn(hdr, txn);
             }
             // do not add non quorum packets to the queue.
@@ -218,6 +224,9 @@ public class FinalRequestProcessor implements RequestProcessor {
                 break;
             }
             case OpCode.create: {
+                // 如果是新建节点，这里会新建一个rsp结果，然后最后面
+                // 会把这个结果返回出去
+                // rc.path是处理的结果路径
                 lastOp = "CREA";
                 rsp = new CreateResponse(rc.path);
                 err = Code.get(rc.err);
@@ -391,6 +400,8 @@ public class FinalRequestProcessor implements RequestProcessor {
         cnxn.updateStatsForResponse(request.cxid, lastZxid, lastOp,
                     request.createTime, Time.currentElapsedTime());
 
+
+        //当所有的请求都处理完成之后，这里就是要把结果返回出去
         try {
             // 发送命令处理完成后的结果，默认是NIOServerCnxn
             cnxn.sendResponse(hdr, rsp, "response");
