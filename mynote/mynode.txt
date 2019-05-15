@@ -5,7 +5,10 @@
    server端会首先创建一个事务日志，保存到相应的目录中去
 2. 打快照，
    服务端在创建一个事务日志后，会在某一个节点取打一个快照，
-   这个快照就是打的我们的dataBase快照，DataBase的层级结构如最后：
+   这个快照就是打的我们的dataBase快照，DataBase的层级结构如:
+       DataBase
+           DataTree
+               DataNode
 3. 更新内容，
    当前面的步骤都操作完成之后，就回去操作内存：DataTree
    注意这里zk是先持久化，然后才操作内存数据的
@@ -13,9 +16,7 @@
 
 
 
-DataBase
-    DataTree
-        DataNode
+
 
 
 
