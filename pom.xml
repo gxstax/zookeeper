@@ -278,7 +278,7 @@
     <commons-cli.version>1.2</commons-cli.version>
     <netty.version>4.1.29.Final</netty.version>
     <jetty.version>9.4.14.v20181114</jetty.version>
-    <jackson.version>2.9.8</jackson.version>
+    <jackson.version>2.12.7.1</jackson.version>
     <json.version>1.1.1</json.version>
     <jline.version>2.11</jline.version>
     <kerby.version>1.1.0</kerby.version>
